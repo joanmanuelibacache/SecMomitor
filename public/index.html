@@ -1,355 +1,559 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SecMonitor - Dashboard</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SecuMonitor</title>
 <style>
-  :root {
-    --bg: #0b0f1a;
-    --panel: #121826;
-    --panel-border: #1f2940;
-    --text: #e6ebf5;
-    --text-dim: #8b95ab;
-    --accent: #3b82f6;
-    --alta: #ef4444;
-    --media: #f59e0b;
-    --baja: #38bdf8;
-    --ok: #22c55e;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: radial-gradient(circle at top left, #131c30, var(--bg) 60%);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 24px;
-  }
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .title-block h1 {
-    margin: 0;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .title-block .sub {
-    color: var(--text-dim);
-    font-size: 13px;
-    margin-top: 4px;
-  }
-  .live-dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: var(--ok);
-    box-shadow: 0 0 0 0 rgba(34,197,94,0.6);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
-    100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
-  }
-  .controls { display: flex; align-items: center; gap: 12px; }
-  .last-updated { color: var(--text-dim); font-size: 12px; }
-  button {
-    background: var(--accent);
-    border: none;
-    color: white;
-    padding: 9px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: transform 0.15s ease, background 0.15s ease;
-  }
-  button:hover { background: #2563eb; transform: translateY(-1px); }
-  button:active { transform: translateY(0); }
-  button.spinning svg { animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    padding: 18px 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  .card .label { color: var(--text-dim); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .card .value { font-size: 32px; font-weight: 700; margin-top: 6px; }
-  .card.alta .value { color: var(--alta); }
-  .card.media .value { color: var(--media); }
-  .card.baja .value { color: var(--baja); }
-  .card .bar {
-    position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); width: 100%;
-  }
-  .card.alta .bar { background: var(--alta); }
-  .card.media .bar { background: var(--media); }
-  .card.baja .bar { background: var(--baja); }
-
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  .panel h2 {
-    margin: 0 0 14px 0;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text);
-  }
-  .panel h2 .count {
-    background: var(--panel-border);
-    color: var(--text-dim);
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-weight: 600;
-  }
-
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th {
-    text-align: left;
-    color: var(--text-dim);
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--panel-border);
-  }
-  td {
-    padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    color: var(--text);
-  }
-  tr:hover td { background: rgba(255,255,255,0.02); }
-  .badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-  .badge.alta { background: rgba(239,68,68,0.15); color: var(--alta); }
-  .badge.media { background: rgba(245,158,11,0.15); color: var(--media); }
-  .badge.baja { background: rgba(56,189,248,0.15); color: var(--baja); }
-  .mono { font-family: 'Consolas', monospace; color: var(--text-dim); font-size: 12px; }
-
-  .empty-state, .loading-state, .error-state {
-    text-align: center;
-    padding: 30px;
-    color: var(--text-dim);
-    font-size: 13px;
-  }
-  .error-state { color: var(--alta); }
-
-  .skeleton {
-    background: linear-gradient(90deg, var(--panel-border) 25%, #283149 50%, var(--panel-border) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    border-radius: 6px;
-    height: 14px;
-  }
-  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-  footer { text-align: center; color: var(--text-dim); font-size: 11px; margin-top: 30px; }
+:root{--bg:#0b0f1a;--pan:#121826;--bdr:#1f2940;--txt:#e6ebf5;--mut:#8b95ab;--acc:#3b82f6;--alta:#ef4444;--med:#f59e0b;--baj:#38bdf8;--ok:#22c55e;--org:#f97316}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(circle at top left,#131c30,var(--bg) 60%);color:var(--txt);min-height:100vh;padding:18px;line-height:1.5}
+.hdr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.brand h1{font-size:21px;display:flex;align-items:center;gap:9px}
+.brand p{color:var(--mut);font-size:12px;margin-top:2px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.nav{display:flex;gap:3px;background:var(--pan);border:1px solid var(--bdr);border-radius:10px;padding:3px;width:fit-content;margin-bottom:18px}
+.tab{padding:7px 18px;border-radius:7px;border:none;background:none;color:var(--mut);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.tab.on{background:var(--acc);color:#fff}
+.tab:hover:not(.on){color:var(--txt)}
+.panel{background:var(--pan);border:1px solid var(--bdr);border-radius:14px;padding:18px;margin-bottom:16px}
+.ph{margin:0 0 12px;font-size:14px;display:flex;align-items:center;gap:8px}
+.ph .ct{background:var(--bdr);color:var(--mut);font-size:11px;padding:2px 8px;border-radius:999px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--pan);border:1px solid var(--bdr);border-radius:14px;padding:15px 16px;position:relative;overflow:hidden}
+.card .lbl{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.card .val{font-size:28px;font-weight:700;margin-top:4px}
+.card .bar{position:absolute;bottom:0;left:0;height:3px;width:100%;background:var(--acc)}
+.ca .val{color:var(--alta)}.ca .bar{background:var(--alta)}
+.cm .val{color:var(--med)}.cm .bar{background:var(--med)}
+.cb .val{color:var(--baj)}.cb .bar{background:var(--baj)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:7px 9px;border-bottom:1px solid var(--bdr)}
+td{padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.mono{font-family:Consolas,monospace;color:var(--mut);font-size:12px}
+.s12{font-size:12px}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase}
+.badge.alta,.badge.critico{background:rgba(239,68,68,.15);color:var(--alta)}
+.badge.media,.badge.medio{background:rgba(245,158,11,.15);color:var(--med)}
+.badge.baja,.badge.bajo{background:rgba(56,189,248,.15);color:var(--baj)}
+.badge.alto{background:rgba(249,115,22,.15);color:var(--org)}
+.badge.pendiente{background:rgba(139,149,171,.15);color:var(--mut)}
+.badge.en_progreso{background:rgba(59,130,246,.15);color:var(--acc)}
+.badge.mitigado{background:rgba(34,197,94,.15);color:var(--ok)}
+button{border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:transform .1s,background .15s;font-family:inherit}
+button:hover{transform:translateY(-1px)}button:active{transform:none}button:disabled{opacity:.55;cursor:default;transform:none}
+.pri{background:var(--acc);color:#fff}.pri:hover{background:#2563eb}
+.sec{background:#1e2840;color:var(--txt)}.sec:hover{background:#28365a}
+.danger{background:rgba(239,68,68,.15);color:var(--alta)}.danger:hover{background:rgba(239,68,68,.25)}
+.sm{padding:5px 10px;font-size:12px}
+.spin svg{animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.ctrl{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ml{margin-left:auto}
+.ts-lbl{color:var(--mut);font-size:12px}
+select{background:var(--pan);border:1px solid var(--bdr);color:var(--txt);padding:7px 10px;border-radius:8px;font-size:13px}
+.empty,.loading,.err{text-align:center;padding:26px;color:var(--mut);font-size:13px}
+.err{color:var(--alta)}
+.sk{background:linear-gradient(90deg,var(--bdr) 25%,#283149 50%,var(--bdr) 75%);background-size:200%;animation:sh 1.4s infinite;border-radius:6px;height:14px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* RISK VIEW */
+.rhdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.rhdr h2{font-size:20px}
+.rhdr p{color:var(--mut);font-size:12px;margin-top:3px}
+/* HEATMAP */
+.hm-wrap{display:flex;gap:5px;align-items:flex-start;overflow-x:auto}
+.hm-ylbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--mut);height:230px;display:flex;align-items:center;justify-content:center}
+.hm-plbls{display:flex;flex-direction:column;height:230px;justify-content:space-around;align-items:center;width:16px}
+.hm-plbls span{font-size:11px;color:var(--mut)}
+.hm-grid{display:grid;grid-template-columns:repeat(5,46px);grid-template-rows:repeat(5,46px);gap:2px;padding:2px;background:var(--bdr);border-radius:8px}
+.hm-cell{border-radius:3px;display:flex;flex-wrap:wrap;gap:2px;padding:3px;align-items:center;justify-content:center;transition:filter .15s;cursor:default}
+.hm-cell:hover{filter:brightness(1.15)}
+.hm-ilbls{display:flex;width:230px;justify-content:space-around;margin-top:4px}
+.hm-ilbls span{font-size:11px;color:var(--mut);width:46px;text-align:center}
+.hm-xlabel{font-size:11px;color:var(--mut);text-align:center;width:230px;margin-top:2px}
+.hm-leg{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap}
+.hm-li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--mut)}
+.hm-sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+.rdot{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.9);color:#111;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
+.rdot:hover{background:var(--acc);color:#fff}
+/* MODAL */
+.ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px}
+.modal{background:var(--pan);border:1px solid var(--bdr);border-radius:16px;width:560px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
+.mhdr{padding:16px 20px 0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
+.mhdr h3{font-size:15px}
+.mbody{padding:14px 20px;overflow-y:auto;flex:1}
+.mftr{padding:10px 20px 16px;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto;border-top:1px solid var(--bdr)}
+.steps{display:flex;margin-bottom:16px;background:var(--bg);border-radius:8px;overflow:hidden}
+.si{flex:1;padding:7px 3px;text-align:center;font-size:10px;color:var(--mut);border-bottom:2px solid var(--bdr);transition:all .2s}
+.si.on{color:var(--acc);border-bottom-color:var(--acc);font-weight:600}
+.si.done{color:var(--ok);border-bottom-color:var(--ok)}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fg input,.fg textarea,.fg select{width:100%;background:var(--bg);border:1px solid var(--bdr);color:var(--txt);padding:9px 11px;border-radius:8px;font-size:13px;font-family:inherit;transition:border-color .2s}
+.fg input:focus,.fg textarea:focus,.fg select:focus{outline:none;border-color:var(--acc)}
+.fg textarea{resize:vertical;min-height:68px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rating{display:flex;gap:5px}
+.rb{flex:1;padding:7px 3px;border-radius:8px;background:var(--bg);border:2px solid var(--bdr);color:var(--txt);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit}
+.rb:hover{border-color:var(--mut);transform:none}
+.rb.on{border-color:var(--acc);background:rgba(59,130,246,.12);color:var(--acc)}
+.rb .rn{font-size:17px;font-weight:700}
+.rb .rl{font-size:9px;opacity:.8}
+.sprev{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:13px;margin-top:10px}
+.snum{font-size:34px;font-weight:700;min-width:52px;text-align:center}
+.snum.bajo{color:var(--ok)}.snum.medio{color:var(--med)}.snum.alto{color:var(--org)}.snum.critico{color:var(--alta)}
+.slbl{font-weight:600;font-size:15px}.ssub{font-size:12px;color:var(--mut);margin-top:2px}.sred{font-size:12px;color:var(--ok);margin-top:2px}
+footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="title-block">
-    <h1><span class="live-dot"></span> SecuMonitor</h1>
-    <div class="sub">Sistema de monitoreo y alertas de seguridad</div>
+<div class="hdr">
+  <div class="brand">
+    <h1><span class="dot"></span> SecuMonitor</h1>
+    <p>Monitoreo de seguridad y gestión de riesgos</p>
   </div>
-  <div class="controls">
-    <span class="last-updated" id="lastUpdated">Cargando...</span>
-    <button id="refreshBtn" onclick="loadData()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M21 12a9 9 0 11-3-6.7M21 4v6h-6"/>
-      </svg>
-      Actualizar
-    </button>
+  <span class="ts-lbl" id="tsLbl">Cargando...</span>
+</div>
+
+<nav class="nav">
+  <button class="tab on" id="tab-monitor" onclick="setTab('monitor')">🖥️ Monitoreo</button>
+  <button class="tab" id="tab-risks" onclick="setTab('risks')">🛡️ Gestión de Riesgos</button>
+</nav>
+
+<!-- ===== MONITOREO ===== -->
+<div id="view-monitor">
+  <div class="ctrl" style="margin-bottom:14px">
+    <select id="reportRange">
+      <option value="1d">Últimas 24h</option>
+      <option value="7d" selected>Últimos 7 días</option>
+      <option value="30d">Últimos 30 días</option>
+    </select>
+    <button class="sec" onclick="downloadReport()">📄 Informe monitoreo</button>
+    <div class="ml">
+      <button class="pri" id="refreshBtn" onclick="loadData()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 11-3-6.7M21 4v6h-6"/></svg>
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <div class="cards" id="summaryCards">
+    <div class="card"><div class="lbl">Eventos</div><div class="sk" style="width:50%;margin-top:8px"></div><div class="bar"></div></div>
+    <div class="card ca"><div class="lbl">Alertas Altas</div><div class="sk" style="width:40%;margin-top:8px"></div><div class="bar"></div></div>
+    <div class="card cm"><div class="lbl">Alertas Medias</div><div class="sk" style="width:40%;margin-top:8px"></div><div class="bar"></div></div>
+    <div class="card cb"><div class="lbl">Alertas Bajas</div><div class="sk" style="width:40%;margin-top:8px"></div><div class="bar"></div></div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">🚨 Alertas Recientes <span class="ct" id="alertsCt">—</span>
+      <div class="ml"><button class="sec sm" onclick="clearAlerts()">✕ Limpiar vista</button></div>
+    </div>
+    <div id="alertsBox"><div class="loading">Cargando...</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">📋 Eventos Recientes <span class="ct" id="eventsCt">—</span></div>
+    <div id="eventsBox"><div class="loading">Cargando...</div></div>
   </div>
 </div>
 
-<div class="cards" id="summaryCards">
-  <div class="card"><div class="label">Eventos Totales</div><div class="skeleton" style="width:60%;margin-top:8px;"></div><div class="bar"></div></div>
-  <div class="card alta"><div class="label">Alertas Altas</div><div class="skeleton" style="width:40%;margin-top:8px;"></div><div class="bar"></div></div>
-  <div class="card media"><div class="label">Alertas Medias</div><div class="skeleton" style="width:40%;margin-top:8px;"></div><div class="bar"></div></div>
-  <div class="card baja"><div class="label">Alertas Bajas</div><div class="skeleton" style="width:40%;margin-top:8px;"></div><div class="bar"></div></div>
+<!-- ===== RIESGOS ===== -->
+<div id="view-risks" style="display:none">
+  <div class="rhdr">
+    <div>
+      <h2>Matriz de Gestión de Riesgos</h2>
+      <p>Identificación → Análisis → Priorización → Mitigación → Riesgo Residual</p>
+    </div>
+    <div class="ctrl">
+      <button class="sec" onclick="downloadRiskReport()">📄 Informe PDF</button>
+      <button class="pri" onclick="openModal()">+ Agregar Riesgo</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">🗺️ Mapa de Calor <span class="ct" id="risksCt">—</span></div>
+    <div class="hm-wrap">
+      <div class="hm-ylbl">Probabilidad ↑</div>
+      <div class="hm-plbls"><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
+      <div>
+        <div class="hm-grid" id="hmGrid"></div>
+        <div class="hm-ilbls"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+        <div class="hm-xlabel">Impacto →</div>
+      </div>
+    </div>
+    <div class="hm-leg">
+      <div class="hm-li"><div class="hm-sw" style="background:rgba(34,197,94,.3)"></div>Bajo (1–4)</div>
+      <div class="hm-li"><div class="hm-sw" style="background:rgba(234,179,8,.3)"></div>Medio (5–9)</div>
+      <div class="hm-li"><div class="hm-sw" style="background:rgba(249,115,22,.3)"></div>Alto (10–14)</div>
+      <div class="hm-li"><div class="hm-sw" style="background:rgba(239,68,68,.3)"></div>Crítico (15–25)</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="ph">📋 Riesgos registrados</div>
+    <div id="risksBox"><div class="loading">Cargando...</div></div>
+  </div>
 </div>
 
-<div class="panel">
-  <h2>🚨 Alertas Recientes <span class="count" id="alertsCount">—</span></h2>
-  <div id="alertsContainer"><div class="loading-state">Cargando alertas...</div></div>
+<!-- ===== MODAL ===== -->
+<div class="ovl" id="riskModal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="mhdr">
+      <h3 id="modalTitle">Agregar Riesgo</h3>
+      <button class="sec sm" onclick="closeModal()" style="padding:4px 10px;font-size:18px;line-height:1">×</button>
+    </div>
+    <div class="mbody">
+      <div class="steps">
+        <div class="si on" id="si1">1. Identificación</div>
+        <div class="si" id="si2">2. Análisis</div>
+        <div class="si" id="si3">3. Mitigación</div>
+        <div class="si" id="si4">4. Riesgo Residual</div>
+      </div>
+
+      <!-- PASO 1 -->
+      <div id="step1">
+        <div class="fg"><label>Nombre del riesgo *</label>
+          <input id="f_name" type="text" placeholder="Ej: Acceso no autorizado a base de datos" oninput="f.name=this.value"></div>
+        <div class="fg"><label>Descripción *</label>
+          <textarea id="f_desc" rows="3" placeholder="¿Cómo podría ocurrir y qué consecuencias tendría?" oninput="f.description=this.value"></textarea></div>
+        <div class="frow">
+          <div class="fg"><label>Categoría *</label>
+            <select id="f_cat" onchange="f.category=this.value">
+              <option value="">Seleccionar...</option>
+              <option>Acceso no autorizado</option><option>Malware / Ransomware</option>
+              <option>Phishing</option><option>DoS / DDoS</option><option>Fuga de datos</option>
+              <option>Ingeniería social</option><option>Vulnerabilidad de software</option>
+              <option>Amenaza interna</option><option>Otro</option>
+            </select></div>
+          <div class="fg"><label>Activos afectados *</label>
+            <input id="f_assets" type="text" placeholder="Ej: Servidor BD, auth" oninput="f.assets=this.value"></div>
+        </div>
+      </div>
+
+      <!-- PASO 2 -->
+      <div id="step2" style="display:none">
+        <div class="fg">
+          <label>Probabilidad de ocurrencia *</label>
+          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">¿Qué tan probable es que este riesgo ocurra?</div>
+          <div class="rating">
+            <button class="rb" data-t="probability" onclick="setRating('probability',1)"><div class="rn">1</div><div class="rl">Muy baja</div></button>
+            <button class="rb" data-t="probability" onclick="setRating('probability',2)"><div class="rn">2</div><div class="rl">Baja</div></button>
+            <button class="rb" data-t="probability" onclick="setRating('probability',3)"><div class="rn">3</div><div class="rl">Media</div></button>
+            <button class="rb" data-t="probability" onclick="setRating('probability',4)"><div class="rn">4</div><div class="rl">Alta</div></button>
+            <button class="rb" data-t="probability" onclick="setRating('probability',5)"><div class="rn">5</div><div class="rl">Muy alta</div></button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Impacto en la organización *</label>
+          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">¿Qué tan grave sería el daño si ocurre?</div>
+          <div class="rating">
+            <button class="rb" data-t="impact" onclick="setRating('impact',1)"><div class="rn">1</div><div class="rl">Insignif.</div></button>
+            <button class="rb" data-t="impact" onclick="setRating('impact',2)"><div class="rn">2</div><div class="rl">Menor</div></button>
+            <button class="rb" data-t="impact" onclick="setRating('impact',3)"><div class="rn">3</div><div class="rl">Moderado</div></button>
+            <button class="rb" data-t="impact" onclick="setRating('impact',4)"><div class="rn">4</div><div class="rl">Mayor</div></button>
+            <button class="rb" data-t="impact" onclick="setRating('impact',5)"><div class="rn">5</div><div class="rl">Catastróf.</div></button>
+          </div>
+        </div>
+        <div class="sprev" id="scorePrev">
+          <div class="snum">—</div>
+          <div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Probabilidad × Impacto</div></div>
+        </div>
+      </div>
+
+      <!-- PASO 3 -->
+      <div id="step3" style="display:none">
+        <div class="fg"><label>Estrategia de mitigación</label>
+          <textarea id="f_mitigation" rows="3" placeholder="¿Qué controles se implementarán para reducir el riesgo?" oninput="f.mitigation=this.value"></textarea></div>
+        <div class="frow">
+          <div class="fg"><label>Responsable</label>
+            <input id="f_responsible" type="text" placeholder="Ej: Equipo de TI" oninput="f.responsible=this.value"></div>
+          <div class="fg"><label>Fecha límite</label>
+            <input id="f_deadline" type="date" onchange="f.deadline=this.value"></div>
+        </div>
+        <div class="fg"><label>Estado</label>
+          <select id="f_status" onchange="f.status=this.value">
+            <option value="pendiente">Pendiente</option>
+            <option value="en_progreso">En progreso</option>
+            <option value="mitigado">Mitigado</option>
+          </select></div>
+      </div>
+
+      <!-- PASO 4 -->
+      <div id="step4" style="display:none">
+        <p style="color:var(--mut);font-size:13px;margin-bottom:14px">Con las medidas de mitigación aplicadas, ¿cuál sería el riesgo remanente?</p>
+        <div class="fg">
+          <label>Probabilidad residual *</label>
+          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">Probabilidad después de mitigar</div>
+          <div class="rating">
+            <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',1)"><div class="rn">1</div><div class="rl">Muy baja</div></button>
+            <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',2)"><div class="rn">2</div><div class="rl">Baja</div></button>
+            <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',3)"><div class="rn">3</div><div class="rl">Media</div></button>
+            <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',4)"><div class="rn">4</div><div class="rl">Alta</div></button>
+            <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',5)"><div class="rn">5</div><div class="rl">Muy alta</div></button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Impacto residual *</label>
+          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">Impacto después de mitigar</div>
+          <div class="rating">
+            <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',1)"><div class="rn">1</div><div class="rl">Insignif.</div></button>
+            <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',2)"><div class="rn">2</div><div class="rl">Menor</div></button>
+            <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',3)"><div class="rn">3</div><div class="rl">Moderado</div></button>
+            <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',4)"><div class="rn">4</div><div class="rl">Mayor</div></button>
+            <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',5)"><div class="rn">5</div><div class="rl">Catastróf.</div></button>
+          </div>
+        </div>
+        <div class="sprev" id="residualPrev">
+          <div class="snum">—</div>
+          <div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Prob. residual × Impacto residual</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mftr">
+      <button class="sec" id="prevBtn" onclick="prevStep()" style="visibility:hidden">← Anterior</button>
+      <button class="pri" id="nextBtn" onclick="nextStep()">Siguiente →</button>
+    </div>
+  </div>
 </div>
 
-<div class="panel">
-  <h2>📋 Eventos Recientes <span class="count" id="eventsCount">—</span></h2>
-  <div id="eventsContainer"><div class="loading-state">Cargando eventos...</div></div>
-</div>
-
-<footer>SecuMonitor v1 — Actualización automática cada 15s</footer>
+<footer>SecuMonitor — Actualización automática cada 15s</footer>
 
 <script>
-// Rutas relativas: funciona tanto en local (node server.js) como ya desplegado
-// en Render, siempre que este archivo se sirva desde el mismo servidor Express.
-const API_BASE = '';
+const API='';
+let alerts=[],events=[],risks=[],riskMap={};
+let hidden=false,step=1,editId=null,f={};
 
-function timeAgo(isoString) {
-  const diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
-  if (diff < 60) return `hace ${diff}s`;
-  if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
-  return `hace ${Math.floor(diff / 86400)}d`;
+function setTab(n){
+  ['monitor','risks'].forEach(t=>{
+    document.getElementById('view-'+t).style.display=t===n?'':'none';
+    document.getElementById('tab-'+t).classList.toggle('on',t===n);
+  });
+  if(n==='risks')loadRisks();
 }
 
-function severityBadge(sev) {
-  const s = (sev || 'baja').toLowerCase();
-  return `<span class="badge ${s}">${s}</span>`;
+function ago(iso){
+  const s=Math.floor((Date.now()-new Date(iso))/1000);
+  return s<60?s+'s':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';
 }
 
-function renderSummary(events, alerts) {
-  const counts = { alta: 0, media: 0, baja: 0 };
-  alerts.forEach(a => { const s = (a.severity || 'baja').toLowerCase(); if (counts[s] !== undefined) counts[s]++; });
+function lvlOf(sc){return sc<=4?'bajo':sc<=9?'medio':sc<=14?'alto':'critico'}
 
-  document.getElementById('summaryCards').innerHTML = `
-    <div class="card">
-      <div class="label">Eventos Totales</div>
-      <div class="value">${events.length}</div>
-      <div class="bar"></div>
-    </div>
-    <div class="card alta">
-      <div class="label">Alertas Altas</div>
-      <div class="value">${counts.alta}</div>
-      <div class="bar"></div>
-    </div>
-    <div class="card media">
-      <div class="label">Alertas Medias</div>
-      <div class="value">${counts.media}</div>
-      <div class="bar"></div>
-    </div>
-    <div class="card baja">
-      <div class="label">Alertas Bajas</div>
-      <div class="value">${counts.baja}</div>
-      <div class="bar"></div>
-    </div>
-  `;
+function cellBg(p,i){
+  const s=p*i;
+  return s<=4?'rgba(34,197,94,.25)':s<=9?'rgba(234,179,8,.25)':s<=14?'rgba(249,115,22,.25)':'rgba(239,68,68,.25)';
 }
 
-function renderAlerts(alerts) {
-  document.getElementById('alertsCount').textContent = alerts.length;
-  const container = document.getElementById('alertsContainer');
+// ─── MONITORING ───────────────────────────────────────────────────────────────
+function renderSummary(ev,al){
+  const c={alta:0,media:0,baja:0};
+  al.forEach(a=>{const s=(a.severity||'baja').toLowerCase();if(c[s]!==undefined)c[s]++;});
+  document.getElementById('summaryCards').innerHTML=`
+    <div class="card"><div class="lbl">Eventos Totales</div><div class="val">${ev.length}</div><div class="bar"></div></div>
+    <div class="card ca"><div class="lbl">Alertas Altas</div><div class="val">${c.alta}</div><div class="bar"></div></div>
+    <div class="card cm"><div class="lbl">Alertas Medias</div><div class="val">${c.media}</div><div class="bar"></div></div>
+    <div class="card cb"><div class="lbl">Alertas Bajas</div><div class="val">${c.baja}</div><div class="bar"></div></div>`;
+}
 
-  if (alerts.length === 0) {
-    container.innerHTML = '<div class="empty-state">No hay alertas todavía. Genera una simulación desde el backend para ver datos aquí.</div>';
-    return;
+function renderAlerts(al){
+  document.getElementById('alertsCt').textContent=al.length;
+  const el=document.getElementById('alertsBox');
+  if(hidden){el.innerHTML='<div class="empty">Vista limpiada — presiona Actualizar para recargar.</div>';return;}
+  if(!al.length){el.innerHTML='<div class="empty">Sin alertas. Genera una simulación para ver datos.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Severidad</th><th>Regla</th><th>Detalle</th><th>IP</th><th>Cuándo</th></tr></thead>
+    <tbody>${al.map(a=>`<tr>
+      <td><span class="badge ${(a.severity||'baja').toLowerCase()}">${a.severity||'—'}</span></td>
+      <td>${a.rule||'—'}</td><td>${a.message||'—'}</td>
+      <td class="mono">${a.sourceIp||'—'}</td><td class="mono">${ago(a.timestamp)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function renderEvents(ev){
+  document.getElementById('eventsCt').textContent=ev.length;
+  const el=document.getElementById('eventsBox');
+  if(!ev.length){el.innerHTML='<div class="empty">Sin eventos.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>Tipo</th><th>IP</th><th>Puerto</th><th>Usuario</th><th>Cuándo</th></tr></thead>
+    <tbody>${ev.slice(0,15).map(e=>`<tr>
+      <td>${e.type||'—'}</td><td class="mono">${e.sourceIp||'—'}</td>
+      <td class="mono">${e.port??'—'}</td><td class="mono">${e.user||'—'}</td>
+      <td class="mono">${ago(e.timestamp)}</td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function clearAlerts(){hidden=true;renderAlerts([]);}
+
+async function loadData(){
+  const btn=document.getElementById('refreshBtn');
+  btn.classList.add('spin');btn.disabled=true;
+  try{
+    const[er,ar]=await Promise.all([fetch(`${API}/api/events?limit=50`),fetch(`${API}/api/alerts?limit=50`)]);
+    events=await er.json();alerts=await ar.json();hidden=false;
+    renderSummary(events,alerts);renderAlerts(alerts);renderEvents(events);
+    document.getElementById('tsLbl').textContent='Actualizado: '+new Date().toLocaleTimeString('es-CL');
+  }catch(e){
+    document.getElementById('alertsBox').innerHTML=`<div class="err">Error: ${e.message}</div>`;
+    document.getElementById('tsLbl').textContent='Error de conexión';
+  }finally{btn.classList.remove('spin');btn.disabled=false;}
+}
+
+function downloadReport(){
+  const r=document.getElementById('reportRange').value;
+  const a=document.createElement('a');a.href=`${API}/api/reports/generate?range=${r}`;a.setAttribute('download','');
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// ─── RISKS ────────────────────────────────────────────────────────────────────
+function renderHeatMap(rs){
+  const grid=document.getElementById('hmGrid'),cells={};
+  grid.innerHTML='';
+  for(let p=5;p>=1;p--){
+    for(let i=1;i<=5;i++){
+      const c=document.createElement('div');
+      c.className='hm-cell';c.style.background=cellBg(p,i);
+      c.title=`P=${p} × I=${i} = ${p*i}`;cells[`${p}-${i}`]=c;grid.appendChild(c);
+    }
+  }
+  rs.forEach((r,idx)=>{
+    const k=`${r.probability}-${r.impact}`;
+    if(cells[k]){
+      const dot=document.createElement('div');
+      dot.className='rdot';dot.title=r.name;dot.textContent=idx+1;
+      dot.onclick=()=>openModal(r.id);cells[k].appendChild(dot);
+    }
+  });
+}
+
+function renderRisksTable(rs){
+  const el=document.getElementById('risksBox');
+  if(!rs.length){el.innerHTML='<div class="empty">Sin riesgos. Haz clic en "+ Agregar Riesgo" para comenzar la matriz.</div>';return;}
+  el.innerHTML=`<table><thead><tr><th>#</th><th>Riesgo</th><th>Activos</th><th>Riesgo Inicial</th><th>Riesgo Residual</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${rs.map((r,i)=>`<tr>
+      <td><div class="rdot" style="background:rgba(255,255,255,.08);color:var(--txt)">${i+1}</div></td>
+      <td><strong>${r.name}</strong><br><span class="mono">${r.category||'—'}</span></td>
+      <td><span class="s12 mono">${r.assets||'—'}</span></td>
+      <td>${r.probability}×${r.impact}=<b>${r.score}</b> <span class="badge ${r.level||'bajo'}">${r.level||'—'}</span></td>
+      <td>${r.residualProbability}×${r.residualImpact}=<b>${r.residualScore}</b> <span class="badge ${r.residualLevel||'bajo'}">${r.residualLevel||'—'}</span></td>
+      <td><span class="badge ${r.status||'pendiente'}">${(r.status||'pendiente').replace('_',' ')}</span></td>
+      <td style="white-space:nowrap">
+        <button class="sec sm" onclick="openModal('${r.id}')">✏️</button>
+        <button class="danger sm" onclick="deleteRisk('${r.id}')">🗑️</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+async function loadRisks(){
+  try{
+    const res=await fetch(`${API}/api/risks`);risks=await res.json();
+    riskMap={};risks.forEach(r=>riskMap[r.id]=r);
+    document.getElementById('risksCt').textContent=risks.length;
+    renderHeatMap(risks);renderRisksTable(risks);
+  }catch(e){document.getElementById('risksBox').innerHTML=`<div class="err">Error: ${e.message}</div>`;}
+}
+
+function downloadRiskReport(){window.open(`${API}/api/reports/risks`,'_blank');}
+
+async function deleteRisk(id){
+  if(!confirm('¿Eliminar este riesgo?'))return;
+  await fetch(`${API}/api/risks/${id}`,{method:'DELETE'});loadRisks();
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openModal(idOrNull=null){
+  const risk=typeof idOrNull==='string'?riskMap[idOrNull]:null;
+  editId=risk?risk.id:null;
+  f=risk?{...risk}:{probability:0,impact:0,residualProbability:0,residualImpact:0,status:'pendiente'};
+  step=1;
+  document.getElementById('modalTitle').textContent=editId?'Editar Riesgo':'Agregar Riesgo';
+
+  // Reset all inputs
+  document.querySelectorAll('#riskModal input,#riskModal textarea').forEach(el=>el.value='');
+  document.querySelectorAll('#riskModal select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
+
+  // Populate if editing
+  if(risk){
+    ['name','description','category','assets','mitigation','responsible','deadline'].forEach(k=>{
+      const el=document.getElementById('f_'+k);if(el&&risk[k])el.value=risk[k];
+    });
+    const fs=document.getElementById('f_status');if(fs)fs.value=risk.status||'pendiente';
+    ['probability','impact','residualProbability','residualImpact'].forEach(k=>{
+      if(f[k])document.querySelectorAll(`[data-t="${k}"]`).forEach((b,i)=>b.classList.toggle('on',i+1===f[k]));
+    });
   }
 
-  const rows = alerts.map(a => `
-    <tr>
-      <td>${severityBadge(a.severity)}</td>
-      <td>${a.rule || '—'}</td>
-      <td>${a.message || '—'}</td>
-      <td class="mono">${a.sourceIp || '—'}</td>
-      <td class="mono">${timeAgo(a.timestamp)}</td>
-    </tr>
-  `).join('');
-
-  container.innerHTML = `
-    <table>
-      <thead><tr><th>Severidad</th><th>Regla</th><th>Detalle</th><th>IP</th><th>Cuándo</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+  renderStep();
+  document.getElementById('riskModal').style.display='flex';
 }
 
-function renderEvents(events) {
-  document.getElementById('eventsCount').textContent = events.length;
-  const container = document.getElementById('eventsContainer');
+function closeModal(){document.getElementById('riskModal').style.display='none';}
 
-  if (events.length === 0) {
-    container.innerHTML = '<div class="empty-state">No hay eventos todavía.</div>';
-    return;
+function renderStep(){
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('step'+i),si=document.getElementById('si'+i);
+    if(s)s.style.display=i===step?'':'none';
+    if(si)si.className='si '+(i<step?'done':i===step?'on':'');
   }
-
-  const rows = events.slice(0, 15).map(e => `
-    <tr>
-      <td>${e.type || '—'}</td>
-      <td class="mono">${e.sourceIp || '—'}</td>
-      <td class="mono">${e.port ?? '—'}</td>
-      <td class="mono">${e.user || '—'}</td>
-      <td class="mono">${timeAgo(e.timestamp)}</td>
-    </tr>
-  `).join('');
-
-  container.innerHTML = `
-    <table>
-      <thead><tr><th>Tipo</th><th>IP</th><th>Puerto</th><th>Usuario</th><th>Cuándo</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+  document.getElementById('prevBtn').style.visibility=step===1?'hidden':'visible';
+  document.getElementById('nextBtn').textContent=step===4?'💾 Guardar':'Siguiente →';
+  if(step===2)updateScore('scorePrev',f.probability,f.impact,false);
+  if(step===4)updateScore('residualPrev',f.residualProbability,f.residualImpact,true);
 }
 
-async function loadData() {
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.add('spinning');
-  btn.disabled = true;
-
-  try {
-    const [eventsRes, alertsRes] = await Promise.all([
-      fetch(`${API_BASE}/api/events?limit=50`),
-      fetch(`${API_BASE}/api/alerts?limit=50`),
-    ]);
-
-    if (!eventsRes.ok || !alertsRes.ok) throw new Error('Respuesta no válida del servidor');
-
-    const events = await eventsRes.json();
-    const alerts = await alertsRes.json();
-
-    renderSummary(events, alerts);
-    renderAlerts(alerts);
-    renderEvents(events);
-
-    document.getElementById('lastUpdated').textContent =
-      'Última actualización: ' + new Date().toLocaleTimeString('es-CL');
-  } catch (err) {
-    console.error(err);
-    document.getElementById('alertsContainer').innerHTML =
-      `<div class="error-state">No se pudo conectar con el backend (${err.message}). ¿Está corriendo el servidor?</div>`;
-    document.getElementById('lastUpdated').textContent = 'Error de conexión';
-  } finally {
-    btn.classList.remove('spinning');
-    btn.disabled = false;
+function nextStep(){
+  if(step===1){
+    f.name=document.getElementById('f_name').value;
+    f.description=document.getElementById('f_desc').value;
+    f.category=document.getElementById('f_cat').value;
+    f.assets=document.getElementById('f_assets').value;
+    if(!f.name||!f.description||!f.category||!f.assets){alert('Completa todos los campos.');return;}
   }
+  if(step===2&&(!f.probability||!f.impact)){alert('Selecciona probabilidad e impacto.');return;}
+  if(step===3){
+    f.mitigation=document.getElementById('f_mitigation').value;
+    f.responsible=document.getElementById('f_responsible').value;
+    f.deadline=document.getElementById('f_deadline').value;
+    f.status=document.getElementById('f_status').value;
+  }
+  if(step===4){saveRisk();return;}
+  step++;renderStep();
+}
+
+function prevStep(){if(step>1){step--;renderStep();}}
+
+function setRating(type,val){
+  f[type]=val;
+  document.querySelectorAll(`[data-t="${type}"]`).forEach((b,i)=>b.classList.toggle('on',i+1===val));
+  if(type==='probability'||type==='impact')updateScore('scorePrev',f.probability,f.impact,false);
+  if(type==='residualProbability'||type==='residualImpact')updateScore('residualPrev',f.residualProbability,f.residualImpact,true);
+}
+
+function updateScore(elId,p,i,showRed){
+  const el=document.getElementById(elId);if(!el)return;
+  const s=(p||0)*(i||0),lvl=s?lvlOf(s):null;
+  const lbls={bajo:'Bajo',medio:'Medio',alto:'Alto',critico:'Crítico'};
+  const red=showRed&&f.probability&&f.impact&&p&&i?Math.round((1-s/(f.probability*f.impact))*100):null;
+  el.innerHTML=s
+    ?`<div class="snum ${lvl}">${s}</div><div><div class="slbl">${lbls[lvl]}</div><div class="ssub">Prob. ${p} × Impacto ${i}</div>${red!==null?`<div class="sred">↓ Reducción del ${red}%</div>`:''}</div>`
+    :`<div class="snum">—</div><div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Probabilidad × Impacto</div></div>`;
+}
+
+async function saveRisk(){
+  if(!f.residualProbability||!f.residualImpact){alert('Selecciona el riesgo residual.');return;}
+  const p={...f,score:f.probability*f.impact,level:lvlOf(f.probability*f.impact),residualScore:f.residualProbability*f.residualImpact,residualLevel:lvlOf(f.residualProbability*f.residualImpact)};
+  delete p.id;
+  try{
+    await fetch(editId?`${API}/api/risks/${editId}`:`${API}/api/risks`,{
+      method:editId?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)
+    });
+    closeModal();loadRisks();
+  }catch(e){alert('Error: '+e.message);}
 }
 
 loadData();
-setInterval(loadData, 15000);
+setInterval(loadData,15000);
 </script>
 </body>
 </html>

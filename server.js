@@ -40,13 +40,47 @@ function cellColor(p, i) {           // returns light hex for PDF
   return '#fecaca';
 }
 
+// ── ABUSEIPDB THREAT INTELLIGENCE ─────────────────────────────────────────────
+require('dotenv').config();
+const ipCache = new Map();
+
+async function checkAbuseIPDB(ip) {
+  if (!process.env.ABUSEIPDB_KEY) return null;
+  const cached = ipCache.get(ip);
+  if (cached && Date.now() - cached.ts < 3600000) return cached.data; // TTL 1h
+  try {
+    const res = await fetch(
+      `https://api.abuseipdb.com/api/v2/check?ipAddress=${encodeURIComponent(ip)}&maxAgeInDays=90`,
+      { headers: { Key: process.env.ABUSEIPDB_KEY, Accept: 'application/json' } }
+    );
+    const { data } = await res.json();
+    if (!data) return null;
+    const result = {
+      score:        data.abuseConfidenceScore,
+      totalReports: data.totalReports,
+      country:      data.countryCode,
+      isp:          data.isp,
+      isTor:        data.isTor,
+      usageType:    data.usageType,
+    };
+    ipCache.set(ip, { data: result, ts: Date.now() });
+    return result;
+  } catch (e) { console.error('AbuseIPDB:', e.message); return null; }
+}
+
 async function processEvent(evt) {
   await eventsCol.doc(evt.id).set(evt);
   win5m.add(evt);
   const alerts = evaluateEvent(evt, win5m);
   for (const a of alerts) {
-    await alertsCol.add({ ...a, timestamp: new Date().toISOString(), status: 'nuevo' });
-    console.log(`🚨 [${a.severity.toUpperCase()}] ${a.message}`);
+    const abuse = await checkAbuseIPDB(a.sourceIp);
+    await alertsCol.add({
+      ...a,
+      timestamp: new Date().toISOString(),
+      status: 'nuevo',
+      ...(abuse && { abuse }),
+    });
+    console.log(`🚨 [${a.severity.toUpperCase()}] ${a.message}${abuse ? ` | AbuseIPDB: ${abuse.score}%` : ''}`);
   }
   return alerts;
 }
@@ -88,6 +122,15 @@ app.get('/api/alerts', async (req, res) => {
   try {
     const snap = await alertsCol.orderBy('timestamp', 'desc').limit(+req.query.limit || 50).get();
     res.json(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Consulta manual de reputación de IP (usada desde el dashboard y el PDF)
+app.get('/api/ip-check/:ip', async (req, res) => {
+  try {
+    const result = await checkAbuseIPDB(req.params.ip);
+    if (!result) return res.status(503).json({ error: 'AbuseIPDB no disponible — configura ABUSEIPDB_KEY' });
+    res.json(result);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

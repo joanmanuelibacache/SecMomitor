@@ -163,6 +163,16 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
     </div>
   </div>
 
+  <!-- IP Lookup -->
+  <div class="panel">
+    <div class="ph">🔍 Consulta de reputación de IP</div>
+    <div class="ctrl">
+      <input class="ip-input" id="ipInput" type="text" placeholder="Ej: 203.0.113.45" onkeydown="if(event.key==='Enter')checkIp()">
+      <button class="pri" onclick="checkIp()">Consultar AbuseIPDB</button>
+    </div>
+    <div id="ipResult"></div>
+  </div>
+
   <div class="panel">
     <div class="ph">🚨 Alertas Recientes <span class="ct" id="alertsCt">—</span>
       <div class="ml"><button class="sec sm" onclick="clearAlerts()">✕ Limpiar vista</button></div>
@@ -389,16 +399,53 @@ function renderSummary(ev,al){
     <div class="card cb"><div class="lbl">Alertas Bajas</div><div class="val">${c.baja}</div><div class="bar"></div></div>`;
 }
 
+function abuseBadge(abuse){
+  if(!abuse) return '<span class="ab ab-na">N/A</span>';
+  const sc=abuse.score;
+  const cls=sc<25?'ab-safe':sc<75?'ab-warn':'ab-danger';
+  const tor=abuse.isTor?'🧅 TOR':'';
+  return `<span class="ab ${cls}" title="ISP: ${abuse.isp||'—'} | País: ${abuse.country||'—'} | Reportes: ${abuse.totalReports}">${sc}% ${tor}</span>`;
+}
+
+function renderIpResult(d,ip){
+  const sc=d.score,cls=sc<25?'ab-safe':sc<75?'ab-warn':'ab-danger';
+  document.getElementById('ipResult').innerHTML=`
+    <div class="ip-result">
+      <div class="ip-field"><div class="lf">IP</div><div class="lv mono">${ip}</div></div>
+      <div class="ip-field"><div class="lf">Abuse Score</div><div class="lv"><span class="ab ${cls}">${sc}%</span></div></div>
+      <div class="ip-field"><div class="lf">Reportes totales</div><div class="lv">${d.totalReports}</div></div>
+      <div class="ip-field"><div class="lf">País</div><div class="lv">${d.country||'—'}</div></div>
+      <div class="ip-field"><div class="lf">ISP</div><div class="lv" style="font-size:12px">${d.isp||'—'}</div></div>
+      <div class="ip-field"><div class="lf">Tipo de uso</div><div class="lv" style="font-size:12px">${d.usageType||'—'}</div></div>
+      <div class="ip-field"><div class="lf">Nodo TOR</div><div class="lv">${d.isTor?'🧅 Sí':'No'}</div></div>
+    </div>`;
+}
+
+async function checkIp(){
+  const ip=document.getElementById('ipInput').value.trim();
+  if(!ip){return;}
+  const el=document.getElementById('ipResult');
+  el.innerHTML='<div class="loading">Consultando AbuseIPDB...</div>';
+  try{
+    const res=await fetch(`${API}/api/ip-check/${encodeURIComponent(ip)}`);
+    if(!res.ok){const e=await res.json();el.innerHTML=`<div class="err">${e.error}</div>`;return;}
+    const d=await res.json();
+    renderIpResult(d,ip);
+  }catch(e){el.innerHTML=`<div class="err">Error: ${e.message}</div>`;}
+}
+
 function renderAlerts(al){
   document.getElementById('alertsCt').textContent=al.length;
   const el=document.getElementById('alertsBox');
   if(hidden){el.innerHTML='<div class="empty">Vista limpiada — presiona Actualizar para recargar.</div>';return;}
   if(!al.length){el.innerHTML='<div class="empty">Sin alertas. Genera una simulación para ver datos.</div>';return;}
-  el.innerHTML=`<table><thead><tr><th>Severidad</th><th>Regla</th><th>Detalle</th><th>IP</th><th>Cuándo</th></tr></thead>
+  el.innerHTML=`<table><thead><tr><th>Severidad</th><th>Regla</th><th>Detalle</th><th>IP</th><th>AbuseIPDB</th><th>Cuándo</th></tr></thead>
     <tbody>${al.map(a=>`<tr>
       <td><span class="badge ${(a.severity||'baja').toLowerCase()}">${a.severity||'—'}</span></td>
       <td>${a.rule||'—'}</td><td>${a.message||'—'}</td>
-      <td class="mono">${a.sourceIp||'—'}</td><td class="mono">${ago(a.timestamp)}</td>
+      <td class="mono" style="cursor:pointer;color:var(--acc)" onclick="document.getElementById('ipInput').value='${a.sourceIp||''}';checkIp()" title="Click para consultar esta IP">${a.sourceIp||'—'}</td>
+      <td>${abuseBadge(a.abuse)}</td>
+      <td class="mono">${ago(a.timestamp)}</td>
     </tr>`).join('')}</tbody></table>`;
 }
 

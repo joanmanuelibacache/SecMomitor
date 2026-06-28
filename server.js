@@ -126,6 +126,28 @@ app.delete('/api/risks/:id', async (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── STATS (para gráficos) ────────────────────────────────────────────────────
+app.get('/api/stats', async (req, res) => {
+  try {
+    const [es, as] = await Promise.all([
+      eventsCol.where('timestamp','>=',new Date(Date.now()-86400000).toISOString()).get(),
+      alertsCol.where('timestamp','>=',new Date(Date.now()-604800000).toISOString()).get(),
+    ]);
+    const evtHr = Array(24).fill(0);
+    es.docs.forEach(d => { const h=Math.floor((Date.now()-new Date(d.data().timestamp))/3600000); if(h<24)evtHr[23-h]++; });
+    const alta=Array(7).fill(0),media=Array(7).fill(0),baja=Array(7).fill(0),lbls=[];
+    for(let i=6;i>=0;i--) lbls.push(new Date(Date.now()-i*86400000).toLocaleDateString('es-CL',{weekday:'short',day:'numeric'}));
+    as.docs.forEach(d => {
+      const {timestamp,severity}=d.data(),di=Math.floor((Date.now()-new Date(timestamp))/86400000);
+      if(di<7){const idx=6-di,s=(severity||'baja').toLowerCase();if(s==='alta')alta[idx]++;else if(s==='media')media[idx]++;else baja[idx]++;}
+    });
+    res.json({
+      eventsByHour:{labels:Array.from({length:24},(_,i)=>new Date(Date.now()-(23-i)*3600000).getHours()+':00'),data:evtHr},
+      alertsByDay:{labels:lbls,alta,media,baja}
+    });
+  }catch(e){res.status(500).json({error:e.message});}
+});
+
 // ── PDF: MONITORING REPORT ────────────────────────────────────────────────────
 app.get('/api/reports/generate', async (req, res) => {
   try {

@@ -27,6 +27,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:radial-gradient(circ
 .ca .val{color:var(--alta)}.ca .bar{background:var(--alta)}
 .cm .val{color:var(--med)}.cm .bar{background:var(--med)}
 .cb .val{color:var(--baj)}.cb .bar{background:var(--baj)}
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.chart-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.chart-wrap{position:relative;height:160px}
+/* Tables */
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:7px 9px;border-bottom:1px solid var(--bdr)}
 td{padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.03)}
@@ -58,17 +63,15 @@ select{background:var(--pan);border:1px solid var(--bdr);color:var(--txt);paddin
 .err{color:var(--alta)}
 .sk{background:linear-gradient(90deg,var(--bdr) 25%,#283149 50%,var(--bdr) 75%);background-size:200%;animation:sh 1.4s infinite;border-radius:6px;height:14px}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
-/* RISK VIEW */
+/* Risk view */
 .rhdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px}
-.rhdr h2{font-size:20px}
-.rhdr p{color:var(--mut);font-size:12px;margin-top:3px}
-/* HEATMAP */
+.rhdr h2{font-size:20px}.rhdr p{color:var(--mut);font-size:12px;margin-top:3px}
 .hm-wrap{display:flex;gap:5px;align-items:flex-start;overflow-x:auto}
 .hm-ylbl{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--mut);height:230px;display:flex;align-items:center;justify-content:center}
 .hm-plbls{display:flex;flex-direction:column;height:230px;justify-content:space-around;align-items:center;width:16px}
 .hm-plbls span{font-size:11px;color:var(--mut)}
 .hm-grid{display:grid;grid-template-columns:repeat(5,46px);grid-template-rows:repeat(5,46px);gap:2px;padding:2px;background:var(--bdr);border-radius:8px}
-.hm-cell{border-radius:3px;display:flex;flex-wrap:wrap;gap:2px;padding:3px;align-items:center;justify-content:center;transition:filter .15s;cursor:default}
+.hm-cell{border-radius:3px;display:flex;flex-wrap:wrap;gap:2px;padding:3px;align-items:center;justify-content:center;transition:filter .15s}
 .hm-cell:hover{filter:brightness(1.15)}
 .hm-ilbls{display:flex;width:230px;justify-content:space-around;margin-top:4px}
 .hm-ilbls span{font-size:11px;color:var(--mut);width:46px;text-align:center}
@@ -78,7 +81,7 @@ select{background:var(--pan);border:1px solid var(--bdr);color:var(--txt);paddin
 .hm-sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
 .rdot{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.9);color:#111;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer}
 .rdot:hover{background:var(--acc);color:#fff}
-/* MODAL */
+/* Modal */
 .ovl{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px}
 .modal{background:var(--pan);border:1px solid var(--bdr);border-radius:16px;width:560px;max-width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden}
 .mhdr{padding:16px 20px 0;display:flex;justify-content:space-between;align-items:center;flex:0 0 auto}
@@ -97,10 +100,8 @@ select{background:var(--pan);border:1px solid var(--bdr);color:var(--txt);paddin
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .rating{display:flex;gap:5px}
 .rb{flex:1;padding:7px 3px;border-radius:8px;background:var(--bg);border:2px solid var(--bdr);color:var(--txt);cursor:pointer;text-align:center;transition:all .15s;font-family:inherit}
-.rb:hover{border-color:var(--mut);transform:none}
 .rb.on{border-color:var(--acc);background:rgba(59,130,246,.12);color:var(--acc)}
-.rb .rn{font-size:17px;font-weight:700}
-.rb .rl{font-size:9px;opacity:.8}
+.rb .rn{font-size:17px;font-weight:700}.rb .rl{font-size:9px;opacity:.8}
 .sprev{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:13px;margin-top:10px}
 .snum{font-size:34px;font-weight:700;min-width:52px;text-align:center}
 .snum.bajo{color:var(--ok)}.snum.medio{color:var(--med)}.snum.alto{color:var(--org)}.snum.critico{color:var(--alta)}
@@ -147,6 +148,21 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
     <div class="card cb"><div class="lbl">Alertas Bajas</div><div class="sk" style="width:40%;margin-top:8px"></div><div class="bar"></div></div>
   </div>
 
+  <!-- TENDENCIAS -->
+  <div class="panel">
+    <div class="ph">📈 Tendencias</div>
+    <div class="chart-grid">
+      <div>
+        <div class="chart-lbl">Eventos / hora — últimas 24h</div>
+        <div class="chart-wrap"><canvas id="chartEvents"></canvas></div>
+      </div>
+      <div>
+        <div class="chart-lbl">Alertas / día por severidad — últimos 7 días</div>
+        <div class="chart-wrap"><canvas id="chartAlerts"></canvas></div>
+      </div>
+    </div>
+  </div>
+
   <div class="panel">
     <div class="ph">🚨 Alertas Recientes <span class="ct" id="alertsCt">—</span>
       <div class="ml"><button class="sec sm" onclick="clearAlerts()">✕ Limpiar vista</button></div>
@@ -172,7 +188,6 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
       <button class="pri" onclick="openModal()">+ Agregar Riesgo</button>
     </div>
   </div>
-
   <div class="panel">
     <div class="ph">🗺️ Mapa de Calor <span class="ct" id="risksCt">—</span></div>
     <div class="hm-wrap">
@@ -191,7 +206,6 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
       <div class="hm-li"><div class="hm-sw" style="background:rgba(239,68,68,.3)"></div>Crítico (15–25)</div>
     </div>
   </div>
-
   <div class="panel">
     <div class="ph">📋 Riesgos registrados</div>
     <div id="risksBox"><div class="loading">Cargando...</div></div>
@@ -212,13 +226,9 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
         <div class="si" id="si3">3. Mitigación</div>
         <div class="si" id="si4">4. Riesgo Residual</div>
       </div>
-
-      <!-- PASO 1 -->
       <div id="step1">
-        <div class="fg"><label>Nombre del riesgo *</label>
-          <input id="f_name" type="text" placeholder="Ej: Acceso no autorizado a base de datos" oninput="f.name=this.value"></div>
-        <div class="fg"><label>Descripción *</label>
-          <textarea id="f_desc" rows="3" placeholder="¿Cómo podría ocurrir y qué consecuencias tendría?" oninput="f.description=this.value"></textarea></div>
+        <div class="fg"><label>Nombre *</label><input id="f_name" type="text" placeholder="Ej: Acceso no autorizado a BD" oninput="f.name=this.value"></div>
+        <div class="fg"><label>Descripción *</label><textarea id="f_desc" rows="3" placeholder="¿Cómo podría ocurrir y qué consecuencias tendría?" oninput="f.description=this.value"></textarea></div>
         <div class="frow">
           <div class="fg"><label>Categoría *</label>
             <select id="f_cat" onchange="f.category=this.value">
@@ -228,50 +238,35 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
               <option>Ingeniería social</option><option>Vulnerabilidad de software</option>
               <option>Amenaza interna</option><option>Otro</option>
             </select></div>
-          <div class="fg"><label>Activos afectados *</label>
-            <input id="f_assets" type="text" placeholder="Ej: Servidor BD, auth" oninput="f.assets=this.value"></div>
+          <div class="fg"><label>Activos afectados *</label><input id="f_assets" type="text" placeholder="Ej: Servidor BD, auth" oninput="f.assets=this.value"></div>
         </div>
       </div>
-
-      <!-- PASO 2 -->
       <div id="step2" style="display:none">
-        <div class="fg">
-          <label>Probabilidad de ocurrencia *</label>
-          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">¿Qué tan probable es que este riesgo ocurra?</div>
+        <div class="fg"><label>Probabilidad *</label>
+          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">¿Qué tan probable es que ocurra?</div>
           <div class="rating">
             <button class="rb" data-t="probability" onclick="setRating('probability',1)"><div class="rn">1</div><div class="rl">Muy baja</div></button>
             <button class="rb" data-t="probability" onclick="setRating('probability',2)"><div class="rn">2</div><div class="rl">Baja</div></button>
             <button class="rb" data-t="probability" onclick="setRating('probability',3)"><div class="rn">3</div><div class="rl">Media</div></button>
             <button class="rb" data-t="probability" onclick="setRating('probability',4)"><div class="rn">4</div><div class="rl">Alta</div></button>
             <button class="rb" data-t="probability" onclick="setRating('probability',5)"><div class="rn">5</div><div class="rl">Muy alta</div></button>
-          </div>
-        </div>
-        <div class="fg">
-          <label>Impacto en la organización *</label>
-          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">¿Qué tan grave sería el daño si ocurre?</div>
+          </div></div>
+        <div class="fg"><label>Impacto *</label>
+          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">¿Qué tan grave sería si ocurre?</div>
           <div class="rating">
             <button class="rb" data-t="impact" onclick="setRating('impact',1)"><div class="rn">1</div><div class="rl">Insignif.</div></button>
             <button class="rb" data-t="impact" onclick="setRating('impact',2)"><div class="rn">2</div><div class="rl">Menor</div></button>
             <button class="rb" data-t="impact" onclick="setRating('impact',3)"><div class="rn">3</div><div class="rl">Moderado</div></button>
             <button class="rb" data-t="impact" onclick="setRating('impact',4)"><div class="rn">4</div><div class="rl">Mayor</div></button>
             <button class="rb" data-t="impact" onclick="setRating('impact',5)"><div class="rn">5</div><div class="rl">Catastróf.</div></button>
-          </div>
-        </div>
-        <div class="sprev" id="scorePrev">
-          <div class="snum">—</div>
-          <div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Probabilidad × Impacto</div></div>
-        </div>
+          </div></div>
+        <div class="sprev" id="scorePrev"><div class="snum">—</div><div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Probabilidad × Impacto</div></div></div>
       </div>
-
-      <!-- PASO 3 -->
       <div id="step3" style="display:none">
-        <div class="fg"><label>Estrategia de mitigación</label>
-          <textarea id="f_mitigation" rows="3" placeholder="¿Qué controles se implementarán para reducir el riesgo?" oninput="f.mitigation=this.value"></textarea></div>
+        <div class="fg"><label>Estrategia de mitigación</label><textarea id="f_mitigation" rows="3" placeholder="¿Qué controles se implementarán?" oninput="f.mitigation=this.value"></textarea></div>
         <div class="frow">
-          <div class="fg"><label>Responsable</label>
-            <input id="f_responsible" type="text" placeholder="Ej: Equipo de TI" oninput="f.responsible=this.value"></div>
-          <div class="fg"><label>Fecha límite</label>
-            <input id="f_deadline" type="date" onchange="f.deadline=this.value"></div>
+          <div class="fg"><label>Responsable</label><input id="f_responsible" type="text" placeholder="Ej: Equipo de TI" oninput="f.responsible=this.value"></div>
+          <div class="fg"><label>Fecha límite</label><input id="f_deadline" type="date" onchange="f.deadline=this.value"></div>
         </div>
         <div class="fg"><label>Estado</label>
           <select id="f_status" onchange="f.status=this.value">
@@ -280,39 +275,27 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
             <option value="mitigado">Mitigado</option>
           </select></div>
       </div>
-
-      <!-- PASO 4 -->
       <div id="step4" style="display:none">
-        <p style="color:var(--mut);font-size:13px;margin-bottom:14px">Con las medidas de mitigación aplicadas, ¿cuál sería el riesgo remanente?</p>
-        <div class="fg">
-          <label>Probabilidad residual *</label>
-          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">Probabilidad después de mitigar</div>
+        <p style="color:var(--mut);font-size:13px;margin-bottom:14px">Con las medidas aplicadas, ¿cuál sería el riesgo remanente?</p>
+        <div class="fg"><label>Probabilidad residual *</label>
           <div class="rating">
             <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',1)"><div class="rn">1</div><div class="rl">Muy baja</div></button>
             <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',2)"><div class="rn">2</div><div class="rl">Baja</div></button>
             <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',3)"><div class="rn">3</div><div class="rl">Media</div></button>
             <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',4)"><div class="rn">4</div><div class="rl">Alta</div></button>
             <button class="rb" data-t="residualProbability" onclick="setRating('residualProbability',5)"><div class="rn">5</div><div class="rl">Muy alta</div></button>
-          </div>
-        </div>
-        <div class="fg">
-          <label>Impacto residual *</label>
-          <div style="color:var(--mut);font-size:11px;margin-bottom:7px">Impacto después de mitigar</div>
+          </div></div>
+        <div class="fg"><label>Impacto residual *</label>
           <div class="rating">
             <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',1)"><div class="rn">1</div><div class="rl">Insignif.</div></button>
             <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',2)"><div class="rn">2</div><div class="rl">Menor</div></button>
             <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',3)"><div class="rn">3</div><div class="rl">Moderado</div></button>
             <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',4)"><div class="rn">4</div><div class="rl">Mayor</div></button>
             <button class="rb" data-t="residualImpact" onclick="setRating('residualImpact',5)"><div class="rn">5</div><div class="rl">Catastróf.</div></button>
-          </div>
-        </div>
-        <div class="sprev" id="residualPrev">
-          <div class="snum">—</div>
-          <div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Prob. residual × Impacto residual</div></div>
-        </div>
+          </div></div>
+        <div class="sprev" id="residualPrev"><div class="snum">—</div><div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Prob. residual × Impacto residual</div></div></div>
       </div>
     </div>
-
     <div class="mftr">
       <button class="sec" id="prevBtn" onclick="prevStep()" style="visibility:hidden">← Anterior</button>
       <button class="pri" id="nextBtn" onclick="nextStep()">Siguiente →</button>
@@ -322,11 +305,14 @@ footer{text-align:center;color:var(--mut);font-size:11px;margin-top:22px}
 
 <footer>SecuMonitor — Actualización automática cada 15s</footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
 const API='';
 let alerts=[],events=[],risks=[],riskMap={};
 let hidden=false,step=1,editId=null,f={};
+let chartE=null,chartA=null;
 
+// ── TABS ──────────────────────────────────────────────────────────────────────
 function setTab(n){
   ['monitor','risks'].forEach(t=>{
     document.getElementById('view-'+t).style.display=t===n?'':'none';
@@ -335,19 +321,64 @@ function setTab(n){
   if(n==='risks')loadRisks();
 }
 
-function ago(iso){
-  const s=Math.floor((Date.now()-new Date(iso))/1000);
-  return s<60?s+'s':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function ago(iso){const s=Math.floor((Date.now()-new Date(iso))/1000);return s<60?s+'s':s<3600?Math.floor(s/60)+'m':s<86400?Math.floor(s/3600)+'h':Math.floor(s/86400)+'d';}
+function lvlOf(sc){return sc<=4?'bajo':sc<=9?'medio':sc<=14?'alto':'critico';}
+function cellBg(p,i){const s=p*i;return s<=4?'rgba(34,197,94,.25)':s<=9?'rgba(234,179,8,.25)':s<=14?'rgba(249,115,22,.25)':'rgba(239,68,68,.25)';}
+
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+function initCharts(d) {
+  const gc='rgba(31,41,64,0.8)',tc='#8b95ab';
+  const baseOpts={
+    responsive:true, maintainAspectRatio:false, animation:{duration:500},
+    plugins:{tooltip:{backgroundColor:'#1a2236',titleColor:'#e6ebf5',bodyColor:'#8b95ab',borderColor:'#1f2940',borderWidth:1}},
+  };
+
+  if(chartE) chartE.destroy();
+  chartE=new Chart(document.getElementById('chartEvents'),{
+    type:'line',
+    data:{
+      labels:d.eventsByHour.labels,
+      datasets:[{
+        data:d.eventsByHour.data,
+        borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.07)',
+        borderWidth:2,fill:true,tension:0.4,
+        pointRadius:2,pointHoverRadius:5,pointBackgroundColor:'#3b82f6',
+      }]
+    },
+    options:{...baseOpts,
+      plugins:{...baseOpts.plugins,legend:{display:false}},
+      scales:{
+        x:{ticks:{color:tc,maxTicksLimit:8,font:{size:11}},grid:{color:gc}},
+        y:{ticks:{color:tc,stepSize:1,font:{size:11}},grid:{color:gc},beginAtZero:true}
+      }
+    }
+  });
+
+  if(chartA) chartA.destroy();
+  chartA=new Chart(document.getElementById('chartAlerts'),{
+    type:'bar',
+    data:{
+      labels:d.alertsByDay.labels,
+      datasets:[
+        {label:'Alta', data:d.alertsByDay.alta, backgroundColor:'rgba(239,68,68,0.78)', borderRadius:3},
+        {label:'Media',data:d.alertsByDay.media,backgroundColor:'rgba(245,158,11,0.78)',borderRadius:3},
+        {label:'Baja', data:d.alertsByDay.baja, backgroundColor:'rgba(56,189,248,0.78)', borderRadius:3},
+      ]
+    },
+    options:{...baseOpts,
+      plugins:{...baseOpts.plugins,
+        legend:{position:'bottom',labels:{color:tc,boxWidth:10,padding:14,font:{size:11}}}
+      },
+      scales:{
+        x:{stacked:true,ticks:{color:tc,font:{size:11}},grid:{color:gc}},
+        y:{stacked:true,ticks:{color:tc,stepSize:1,font:{size:11}},grid:{color:gc},beginAtZero:true}
+      }
+    }
+  });
 }
 
-function lvlOf(sc){return sc<=4?'bajo':sc<=9?'medio':sc<=14?'alto':'critico'}
-
-function cellBg(p,i){
-  const s=p*i;
-  return s<=4?'rgba(34,197,94,.25)':s<=9?'rgba(234,179,8,.25)':s<=14?'rgba(249,115,22,.25)':'rgba(239,68,68,.25)';
-}
-
-// ─── MONITORING ───────────────────────────────────────────────────────────────
+// ── MONITORING ────────────────────────────────────────────────────────────────
 function renderSummary(ev,al){
   const c={alta:0,media:0,baja:0};
   al.forEach(a=>{const s=(a.severity||'baja').toLowerCase();if(c[s]!==undefined)c[s]++;});
@@ -389,9 +420,16 @@ async function loadData(){
   const btn=document.getElementById('refreshBtn');
   btn.classList.add('spin');btn.disabled=true;
   try{
-    const[er,ar]=await Promise.all([fetch(`${API}/api/events?limit=50`),fetch(`${API}/api/alerts?limit=50`)]);
-    events=await er.json();alerts=await ar.json();hidden=false;
+    const[er,ar,sr]=await Promise.all([
+      fetch(`${API}/api/events?limit=50`),
+      fetch(`${API}/api/alerts?limit=50`),
+      fetch(`${API}/api/stats`),
+    ]);
+    events=await er.json();alerts=await ar.json();
+    const stats=await sr.json();
+    hidden=false;
     renderSummary(events,alerts);renderAlerts(alerts);renderEvents(events);
+    if(typeof Chart!=='undefined'&&!stats.error)initCharts(stats);
     document.getElementById('tsLbl').textContent='Actualizado: '+new Date().toLocaleTimeString('es-CL');
   }catch(e){
     document.getElementById('alertsBox').innerHTML=`<div class="err">Error: ${e.message}</div>`;
@@ -405,30 +443,24 @@ function downloadReport(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-// ─── RISKS ────────────────────────────────────────────────────────────────────
+// ── RISKS ─────────────────────────────────────────────────────────────────────
 function renderHeatMap(rs){
   const grid=document.getElementById('hmGrid'),cells={};
   grid.innerHTML='';
-  for(let p=5;p>=1;p--){
-    for(let i=1;i<=5;i++){
-      const c=document.createElement('div');
-      c.className='hm-cell';c.style.background=cellBg(p,i);
-      c.title=`P=${p} × I=${i} = ${p*i}`;cells[`${p}-${i}`]=c;grid.appendChild(c);
-    }
-  }
+  for(let p=5;p>=1;p--){for(let i=1;i<=5;i++){
+    const c=document.createElement('div');
+    c.className='hm-cell';c.style.background=cellBg(p,i);c.title=`P=${p}×I=${i}=${p*i}`;
+    cells[`${p}-${i}`]=c;grid.appendChild(c);
+  }}
   rs.forEach((r,idx)=>{
     const k=`${r.probability}-${r.impact}`;
-    if(cells[k]){
-      const dot=document.createElement('div');
-      dot.className='rdot';dot.title=r.name;dot.textContent=idx+1;
-      dot.onclick=()=>openModal(r.id);cells[k].appendChild(dot);
-    }
+    if(cells[k]){const dot=document.createElement('div');dot.className='rdot';dot.title=r.name;dot.textContent=idx+1;dot.onclick=()=>openModal(r.id);cells[k].appendChild(dot);}
   });
 }
 
 function renderRisksTable(rs){
   const el=document.getElementById('risksBox');
-  if(!rs.length){el.innerHTML='<div class="empty">Sin riesgos. Haz clic en "+ Agregar Riesgo" para comenzar la matriz.</div>';return;}
+  if(!rs.length){el.innerHTML='<div class="empty">Sin riesgos. Haz clic en "+ Agregar Riesgo" para comenzar.</div>';return;}
   el.innerHTML=`<table><thead><tr><th>#</th><th>Riesgo</th><th>Activos</th><th>Riesgo Inicial</th><th>Riesgo Residual</th><th>Estado</th><th></th></tr></thead>
     <tbody>${rs.map((r,i)=>`<tr>
       <td><div class="rdot" style="background:rgba(255,255,255,.08);color:var(--txt)">${i+1}</div></td>
@@ -445,12 +477,8 @@ function renderRisksTable(rs){
 }
 
 async function loadRisks(){
-  try{
-    const res=await fetch(`${API}/api/risks`);risks=await res.json();
-    riskMap={};risks.forEach(r=>riskMap[r.id]=r);
-    document.getElementById('risksCt').textContent=risks.length;
-    renderHeatMap(risks);renderRisksTable(risks);
-  }catch(e){document.getElementById('risksBox').innerHTML=`<div class="err">Error: ${e.message}</div>`;}
+  try{const res=await fetch(`${API}/api/risks`);risks=await res.json();riskMap={};risks.forEach(r=>riskMap[r.id]=r);document.getElementById('risksCt').textContent=risks.length;renderHeatMap(risks);renderRisksTable(risks);}
+  catch(e){document.getElementById('risksBox').innerHTML=`<div class="err">Error: ${e.message}</div>`;}
 }
 
 function downloadRiskReport(){window.open(`${API}/api/reports/risks`,'_blank');}
@@ -460,30 +488,21 @@ async function deleteRisk(id){
   await fetch(`${API}/api/risks/${id}`,{method:'DELETE'});loadRisks();
 }
 
-// ─── MODAL ────────────────────────────────────────────────────────────────────
+// ── MODAL ─────────────────────────────────────────────────────────────────────
 function openModal(idOrNull=null){
   const risk=typeof idOrNull==='string'?riskMap[idOrNull]:null;
   editId=risk?risk.id:null;
   f=risk?{...risk}:{probability:0,impact:0,residualProbability:0,residualImpact:0,status:'pendiente'};
   step=1;
   document.getElementById('modalTitle').textContent=editId?'Editar Riesgo':'Agregar Riesgo';
-
-  // Reset all inputs
   document.querySelectorAll('#riskModal input,#riskModal textarea').forEach(el=>el.value='');
   document.querySelectorAll('#riskModal select').forEach(el=>el.selectedIndex=0);
   document.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
-
-  // Populate if editing
   if(risk){
-    ['name','description','category','assets','mitigation','responsible','deadline'].forEach(k=>{
-      const el=document.getElementById('f_'+k);if(el&&risk[k])el.value=risk[k];
-    });
+    ['name','description','category','assets','mitigation','responsible','deadline'].forEach(k=>{const el=document.getElementById('f_'+k);if(el&&risk[k])el.value=risk[k];});
     const fs=document.getElementById('f_status');if(fs)fs.value=risk.status||'pendiente';
-    ['probability','impact','residualProbability','residualImpact'].forEach(k=>{
-      if(f[k])document.querySelectorAll(`[data-t="${k}"]`).forEach((b,i)=>b.classList.toggle('on',i+1===f[k]));
-    });
+    ['probability','impact','residualProbability','residualImpact'].forEach(k=>{if(f[k])document.querySelectorAll(`[data-t="${k}"]`).forEach((b,i)=>b.classList.toggle('on',i+1===f[k]));});
   }
-
   renderStep();
   document.getElementById('riskModal').style.display='flex';
 }
@@ -503,20 +522,9 @@ function renderStep(){
 }
 
 function nextStep(){
-  if(step===1){
-    f.name=document.getElementById('f_name').value;
-    f.description=document.getElementById('f_desc').value;
-    f.category=document.getElementById('f_cat').value;
-    f.assets=document.getElementById('f_assets').value;
-    if(!f.name||!f.description||!f.category||!f.assets){alert('Completa todos los campos.');return;}
-  }
+  if(step===1){f.name=document.getElementById('f_name').value;f.description=document.getElementById('f_desc').value;f.category=document.getElementById('f_cat').value;f.assets=document.getElementById('f_assets').value;if(!f.name||!f.description||!f.category||!f.assets){alert('Completa todos los campos.');return;}}
   if(step===2&&(!f.probability||!f.impact)){alert('Selecciona probabilidad e impacto.');return;}
-  if(step===3){
-    f.mitigation=document.getElementById('f_mitigation').value;
-    f.responsible=document.getElementById('f_responsible').value;
-    f.deadline=document.getElementById('f_deadline').value;
-    f.status=document.getElementById('f_status').value;
-  }
+  if(step===3){f.mitigation=document.getElementById('f_mitigation').value;f.responsible=document.getElementById('f_responsible').value;f.deadline=document.getElementById('f_deadline').value;f.status=document.getElementById('f_status').value;}
   if(step===4){saveRisk();return;}
   step++;renderStep();
 }
@@ -535,21 +543,16 @@ function updateScore(elId,p,i,showRed){
   const s=(p||0)*(i||0),lvl=s?lvlOf(s):null;
   const lbls={bajo:'Bajo',medio:'Medio',alto:'Alto',critico:'Crítico'};
   const red=showRed&&f.probability&&f.impact&&p&&i?Math.round((1-s/(f.probability*f.impact))*100):null;
-  el.innerHTML=s
-    ?`<div class="snum ${lvl}">${s}</div><div><div class="slbl">${lbls[lvl]}</div><div class="ssub">Prob. ${p} × Impacto ${i}</div>${red!==null?`<div class="sred">↓ Reducción del ${red}%</div>`:''}</div>`
-    :`<div class="snum">—</div><div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Probabilidad × Impacto</div></div>`;
+  el.innerHTML=s?`<div class="snum ${lvl}">${s}</div><div><div class="slbl">${lbls[lvl]}</div><div class="ssub">Prob. ${p} × Impacto ${i}</div>${red!==null?`<div class="sred">↓ Reducción del ${red}%</div>`:''}</div>`:
+    `<div class="snum">—</div><div><div class="slbl" style="color:var(--mut)">Selecciona ambos valores</div><div class="ssub">Probabilidad × Impacto</div></div>`;
 }
 
 async function saveRisk(){
   if(!f.residualProbability||!f.residualImpact){alert('Selecciona el riesgo residual.');return;}
   const p={...f,score:f.probability*f.impact,level:lvlOf(f.probability*f.impact),residualScore:f.residualProbability*f.residualImpact,residualLevel:lvlOf(f.residualProbability*f.residualImpact)};
   delete p.id;
-  try{
-    await fetch(editId?`${API}/api/risks/${editId}`:`${API}/api/risks`,{
-      method:editId?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)
-    });
-    closeModal();loadRisks();
-  }catch(e){alert('Error: '+e.message);}
+  try{await fetch(editId?`${API}/api/risks/${editId}`:`${API}/api/risks`,{method:editId?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});closeModal();loadRisks();}
+  catch(e){alert('Error: '+e.message);}
 }
 
 loadData();

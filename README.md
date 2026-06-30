@@ -6,7 +6,7 @@ SecuMonitor es un sistema **SIEM (Security Information and Event Management)** d
 
 ## 🚀 Demo en vivo
 
-> [https://secumonitor.onrender.com](https://secmomitor.onrender.com)  
+> [https://secumonitor.onrender.com]([https://secmomitor.onrender.com])  
 > *(el plan gratuito de Render puede tardar ~30s en despertar si lleva tiempo inactivo)*
 
 ---

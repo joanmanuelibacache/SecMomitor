@@ -1,4 +1,4 @@
-# 🛡️ SecuMonitor — Sistema SIEM de Monitoreo y Gestión de Riesgos
+# 🛡️ SecMonitor — Sistema SIEM de Monitoreo y Gestión de Riesgos
 
 SecMonitor es un sistema **SIEM (Security Information and Event Management)** desarrollado desde cero como proyecto personal, orientado a la detección de patrones de ataque, gestión de riesgos de seguridad y generación automática de informes. Desplegado en la nube con Firebase y Render.
 
